@@ -114,7 +114,11 @@ sudo systemctl restart apache2
 
 **Langkah 8: Konfigurasi PHP (Opsional tapi Disarankan)**
 
-Edit file `php.ini` (misalnya `sudo nano /etc/php/8.1/apache2/php.ini`) dan setel `date.timezone`.
+Edit file `php.ini` (misalnya `sudo nano /etc/php/8.3/apache2/php.ini`) dan setel `date.timezone`.
+ubah 8.3 dengan versi php Anda. Check versi php yg terinstall 
+```ini
+php -v
+```
 
 ```ini
 date.timezone = Asia/Jakarta
