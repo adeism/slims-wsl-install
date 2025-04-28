@@ -1,158 +1,196 @@
-# slims-wsl-install
-Installasi slims di WSL(Windows untuk Linux)
 
+# 🚀 Instalasi SLiMS di WS
+Panduan ini akan memandu Anda menginstal **SLiMS (Senayan Library Management System)** menggunakan **WSL (Windows Subsystem for Linux)** dengan metode **Git**, membuatnya lebih mudah untuk mendapatkan versi terbaru.
 
+---
 
-**Prasyarat:**
+### 📋 **Prasyarat Wajib:**
 
-1.  Sudah menginstal WSL (Subsistem Windows untuk Linux) di Windows Anda.
-2.  Sudah menginstal distribusi Ubuntu di dalam WSL (misalnya, Ubuntu 20.04, 22.04, atau yang terbaru).
-3.  Memiliki akses ke terminal Ubuntu di WSL.
+Sebelum memulai, pastikan Anda sudah:
 
-**Langkah-Langkah Instalasi (Dengan Git):**
+*   ✅ Menginstal WSL di Windows.
+*   ✅ Menginstal distribusi Ubuntu (misalnya, 20.04, 22.04+) di WSL.
+*   ✅ Memiliki akses ke terminal Ubuntu di WSL.
 
-Buka terminal Ubuntu Anda di WSL dan ikuti langkah-langkah berikut:
+---
 
-**Langkah 1: Perbarui Sistem**
+### 🛠️ **Langkah-Langkah Instalasi (Metode Git):**
 
+Buka terminal Ubuntu Anda dan ikuti petualangan instalasi ini!
+
+**1️⃣ ⬆️ Perbarui Sistem Anda**
+*   Jaga sistem Ubuntu Anda tetap *fresh* dan aman!
+
+    ```bash
+    sudo apt update
+    sudo apt upgrade -y
+    ```
+
+**2️⃣ 📦 Instal Kebutuhan Utama (LAMP + Git)**
+*   Kita butuh Web Server (Apache), Database (MySQL), Bahasa Pemrograman (PHP), dan tentu saja Git.
+
+    ```bash
+    sudo apt install apache2 mysql-server php libapache2-mod-php php-mysql php-cli php-gd php-intl php-xml php-curl php-mbstring git -y
+    ```
+    *   `git`: Alat keren untuk mengunduh kode SLiMS langsung dari sumbernya.
+
+**3️⃣ 🔒 Amankan Instalasi MySQL**
+*   Lindungi database Anda dari akses yang tidak diinginkan.
+
+    ```bash
+    sudo mysql_secure_installation
+    ```
+    *   Ikuti petunjuknya: setel password `root` MySQL yang kuat dan jawab pertanyaan keamanan.
+
+**4️⃣ 🗄️ Buat Database & Pengguna SLiMS**
+*   Siapkan "rumah" khusus untuk data SLiMS di MySQL.
+
+    Masuk ke MySQL:
+    ```bash
+    sudo mysql -u root -p
+    ```
+    *   Masukkan password root MySQL yang baru saja Anda buat.
+
+    Jalankan perintah SQL berikut (ganti `your_strong_password`!):
+    ```sql
+    CREATE DATABASE slims_db;
+    CREATE USER 'slims_user'@'localhost' IDENTIFIED BY 'your_strong_password'; -- <-- Ganti dengan password kuat!
+    GRANT ALL PRIVILEGES ON slims_db.* TO 'slims_user'@'localhost';
+    FLUSH PRIVILEGES;
+    EXIT;
+    ```
+
+**5️⃣ 📥 Unduh SLiMS 9 Bulian via Git**
+*   Ambil kode SLiMS terbaru langsung dari repositori GitHub ke direktori web server.
+
+    ```bash
+    cd /var/www/html/
+    # Pastikan direktori 'slims' belum ada atau kosong
+    sudo git clone https://github.com/slims/slims9_bulian.git slims/
+    ```
+    *   Ini akan membuat folder `/var/www/html/slims/` dan mengisinya dengan file SLiMS.
+
+    > **💡 Tips:** Ingin versi spesifik (misal v9.6.1)? Setelah `clone`, lakukan:
+    > ```bash
+    > # (Opsional) Pindah ke direktori SLiMS
+    > cd /var/www/html/slims/
+    > # Checkout versi yang diinginkan
+    > sudo git checkout 9.6.1
+    > # Kembali jika perlu
+    > # cd /var/www/html/
+    > ```
+    > Untuk instalasi standar, `git clone` saja sudah cukup.
+
+**6️⃣ 🛡️ Atur Hak Akses File**
+*   Berikan izin yang tepat agar web server (Apache) bisa membaca dan menulis file SLiMS.
+
+    ```bash
+    sudo chown -R www-data:www-data /var/www/html/slims/
+    sudo chmod -R 755 /var/www/html/slims/
+    # Izin tulis khusus untuk direktori tertentu:
+    sudo chmod -R 775 /var/www/html/slims/files /var/www/html/slims/images /var/www/html/slims/repository
+    ```
+
+**7️⃣ 🔧 Konfigurasi Apache (Mod_Rewrite)**
+*   Aktifkan fitur penting agar URL SLiMS lebih rapi.
+
+    ```bash
+    sudo a2enmod rewrite
+    ```
+    Edit file konfigurasi Apache:
+    ```bash
+    sudo nano /etc/apache2/apache2.conf
+    ```
+    Cari bagian `<Directory /var/www/>` dan ubah `AllowOverride None` menjadi `AllowOverride All`:
+    ```apache
+    <Directory /var/www/>
+        Options Indexes FollowSymLinks
+        AllowOverride All # <-- Pastikan ini All!
+        Require all granted
+    </Directory>
+    ```
+    *   Simpan file (Ctrl+O, Enter) dan keluar (Ctrl+X).
+
+    Restart Apache agar perubahan diterapkan:
+    ```bash
+    sudo systemctl restart apache2
+    ```
+
+**8️⃣ ⚙️ Konfigurasi PHP (Opsional, tapi Penting!)**
+*   Atur zona waktu agar sesuai dengan lokasi Anda.
+
+    Cek versi PHP Anda (misal, outputnya 8.1, 8.2, 8.3):
+    ```bash
+    php -v
+    ```
+    Edit file `php.ini` (ganti `8.x` dengan versi Anda):
+    ```bash
+    sudo nano /etc/php/8.x/apache2/php.ini # <-- Ganti 8.x
+    ```
+    Cari baris `;date.timezone =`, hapus tanda titik koma (`;`) di awal, dan setel zona waktu:
+    ```ini
+    date.timezone = Asia/Jakarta
+    ```
+    *   Simpan file (Ctrl+O, Enter) dan keluar (Ctrl+X).
+
+    Restart Apache lagi:
+    ```bash
+    sudo systemctl restart apache2
+    ```
+
+**9️⃣ 🖥️ Mulai Instalasi via Browser**
+*   Buka browser favorit Anda di Windows.
+*   Kunjungi alamat: `http://localhost/slims/`
+    *   Jika `localhost` tidak berfungsi, cari tahu IP WSL Anda dengan perintah `ip addr show eth0 | grep "inet\ "` di terminal Ubuntu, lalu gunakan IP tersebut (misal: `http://172.x.x.x/slims/`).
+
+**🔟 ✨ Ikuti Wizard Instalasi SLiMS**
+*   Sekarang bagian yang mudah di browser:
+    1.  Klik **"Start Installation"**.
+    2.  Periksa persyaratan sistem (seharusnya semua hijau ✅).
+    3.  Masukkan detail database yang Anda buat di Langkah 4:
+        *   Database Host: `localhost`
+        *   Database Name: `slims_db`
+        *   Database Username: `slims_user`
+        *   Database Password: `your_strong_password` (yang Anda setel)
+    4.  Klik **"Test Connection"**. Seharusnya berhasil!
+    5.  Buat akun **administrator** SLiMS (username dan password baru untuk login SLiMS).
+    6.  Klik **"Run the Installation"** dan tunggu sebentar.
+
+**1️⃣1️⃣ ⚠️ Hapus Direktori `install` (WAJIB!)**
+*   **SANGAT PENTING UNTUK KEAMANAN!** Setelah instalasi selesai, segera hapus folder `install`.
+
+    Kembali ke terminal Ubuntu WSL:
+    ```bash
+    sudo rm -rf /var/www/html/slims/install/
+    ```
+
+---
+
+### 🔄 **Opsi: Memulihkan Database yang Sudah Ada**
+
+Punya backup database SLiMS (`.sql` atau `.sql.gz`)? Anda bisa memulihkannya *setelah* membuat database kosong di Langkah 4 dan *sebelum* mengakses wizard instalasi di Langkah 9.
+
+Ganti detail berikut dengan milik Anda:
+*   `/path/to/your/backup.sql.gz`: Lokasi file backup `.gz` Anda.
+*   `/path/to/your/backup.sql`: Lokasi file backup `.sql` Anda.
+*   `slims_user`: Nama pengguna database SLiMS Anda.
+*   `slims_db`: Nama database SLiMS Anda.
+
+**Untuk file `.sql.gz`:**
 ```bash
-sudo apt update
-sudo apt upgrade -y
+zcat /path/to/your/backup.sql.gz | mysql -u slims_user -p -h localhost slims_db
 ```
 
-**Langkah 2: Instal Tumpukan LAMP (Apache, MySQL, PHP) dan Git**
-
-Tambahkan `git` ke daftar paket yang diinstal.
-
+**Untuk file `.sql`:**
 ```bash
-sudo apt install apache2 mysql-server php libapache2-mod-php php-mysql php-cli php-gd php-intl php-xml php-curl php-mbstring git -y
+mysql -u slims_user -p -h localhost slims_db < /path/to/your/backup.sql
 ```
+*   Anda akan diminta memasukkan password `slims_user`.
 
-*   `git`: Untuk mengunduh kode SLiMS dari repositori.
+---
 
-**Langkah 3: Amankan Instalasi MySQL**
+## 🎉 **Selesai! Selamat!** 👍
 
-```bash
-sudo mysql_secure_installation
-```
+SLiMS Senayan v9 Bulian kini berhasil terinstal di WSL Anda menggunakan Git. Metode ini tidak hanya cepat tetapi juga memudahkan jika Anda ingin memperbarui SLiMS di kemudian hari (`git pull`).
 
-Setel password root MySQL dan jawab pertanyaan keamanan lainnya.
-
-**Langkah 4: Buat Database dan Pengguna MySQL untuk SLiMS**
-
-Masuk ke shell MySQL:
-
-```bash
-sudo mysql -u root -p
-```
-
-Di dalam shell MySQL, jalankan perintah berikut:
-
-```sql
-CREATE DATABASE slims_db;
-CREATE USER 'slims_user'@'localhost' IDENTIFIED BY 'your_strong_password';
-GRANT ALL PRIVILEGES ON slims_db.* TO 'slims_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-
-*Ganti* `'your_strong_password'` dengan password yang kuat.
-
-**Langkah 5: Unduh SLiMS Senayan (v9 Bulian) Menggunakan Git**
-
-Kita akan mengklon (clone) repositori SLiMS langsung ke direktori web root Apache. Pastikan direktori target `/var/www/html/slims` kosong atau tidak ada sebelumnya.
-
-```bash
-cd /var/www/html/
-sudo git clone https://github.com/slims/slims9_bulian.git slims/
-```
-
-Ini akan membuat direktori `/var/www/html/slims/` dan mengunduh semua file dari repositori SLiMS Bulian ke dalamnya. Secara default, ini akan mengunduh branch `master`.
-
-*Catatan:* Jika Anda ingin menginstal versi spesifik (misalnya v9.6.1), setelah `git clone`, Anda bisa masuk ke direktori `slims/` dan melakukan checkout ke tag yang diinginkan:
-```bash
-# (Opsional: Jika ingin versi spesifik seperti 9.6.1)
-cd /var/www/html/slims/
-sudo git checkout 9.6.1
-# Kembali ke direktori sebelumnya jika perlu
-# cd /var/www/html/
-```
-Untuk instalasi termudah, mengklon branch `master` langsung ke direktori target sudah cukup.
-
-**Langkah 6: Atur Hak Akses File dan Direktori**
-
-```bash
-sudo chown -R www-data:www-data /var/www/html/slims/
-sudo chmod -R 755 /var/www/html/slims/
-# Berikan izin tulis untuk direktori tertentu yang dibutuhkan SLiMS
-sudo chmod -R 775 /var/www/html/slims/files /var/www/html/slims/images /var/www/html/slims/repository
-```
-Langkah ini sama seperti sebelumnya, hanya sekarang diterapkan pada file hasil `git clone`.
-
-**Langkah 7: Konfigurasi Apache (Enable Mod_Rewrite)**
-
-```bash
-sudo a2enmod rewrite
-```
-
-Edit file konfigurasi Apache (`sudo nano /etc/apache2/apache2.conf`) dan ubah `AllowOverride None` menjadi `AllowOverride All` di bagian `<Directory /var/www/>`.
-
-```apache
-<Directory /var/www/>
-    Options Indexes FollowSymLinks
-    AllowOverride All # Ubah dari None menjadi All
-    Require all granted
-</Directory>
-```
-Simpan file.
-
-Restart Apache:
-
-```bash
-sudo systemctl restart apache2
-```
-
-**Langkah 8: Konfigurasi PHP (Opsional tapi Disarankan)**
-
-Edit file `php.ini` (misalnya `sudo nano /etc/php/8.3/apache2/php.ini`) dan setel `date.timezone`.
-ubah 8.3 dengan versi php Anda. Check versi php yg terinstall 
-```ini
-php -v
-```
-
-```ini
-date.timezone = Asia/Jakarta
-```
-Hapus tanda titik koma (`;`). Simpan file.
-
-Restart Apache:
-
-```bash
-sudo systemctl restart apache2
-```
-
-**Langkah 9: Akses Instalasi SLiMS melalui Browser Windows**
-
-Buka browser di Windows dan akses `http://localhost/slims/` (atau IP WSL Anda, cek dengan `ip addr show eth0 | grep inet\ `).
-
-**Langkah 10: Ikuti Wizard Instalasi SLiMS**
-
-Ikuti langkah-langkah di browser seperti pada panduan sebelumnya:
-*   Start Installation
-*   Cek persyaratan (harusnya semua hijau)
-*   Masukkan detail database (`localhost`, `slims_db`, `slims_user`, `your_strong_password`)
-*   Test koneksi
-*   Setel akun administrator awal
-*   Selesaikan instalasi.
-
-**Langkah 11: Hapus Direktori `install` (Penting untuk Keamanan!)**
-
-Setelah instalasi selesai, hapus direktori `install` dari terminal WSL:
-
-```bash
-sudo rm -rf /var/www/html/slims/install/
-```
-
-**Selesai!**
-
-Sekarang SLiMS Senayan v9 Bulian sudah terinstal di WSL Anda, diunduh langsung dari repositori Git. Metode ini sedikit lebih cepat karena tidak perlu mengunduh ZIP dan mengekstraknya secara terpisah.
+Selamat mengelola perpustakaan Anda!
