@@ -6,11 +6,17 @@ Panduan ini akan memandu Anda menginstal **SLiMS (Senayan Library Management Sys
 
 ### 📋 **Prasyarat Wajib:**
 
-Sebelum memulai, pastikan Anda sudah:
+Sebelum melanjutkan ke langkah instalasi SLiMS, pastikan Anda telah menyiapkan lingkungan WSL dan Ubuntu di Windows Anda. Ikuti panduan terpisah berikut jika Anda belum melakukannya:
+
+➡️ **[Panduan Lengkap Menyiapkan WSL dan Ubuntu](./panduan-wsl.md)**
+
+Setelah mengikuti panduan di atas, Anda seharusnya sudah:
 
 *   ✅ Menginstal WSL di Windows.
-*   ✅ Menginstal distribusi Ubuntu (misalnya, 20.04, 22.04+) di WSL.
+*   ✅ Menginstal distribusi Ubuntu (misalnya, 20.04, 22.04+) di WSL dan melakukan konfigurasi awal (user/password).
 *   ✅ Memiliki akses ke terminal Ubuntu di WSL.
+
+Jika semua prasyarat di atas sudah terpenuhi, Anda siap melanjutkan!
 
 ---
 
