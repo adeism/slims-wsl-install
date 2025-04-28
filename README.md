@@ -1,5 +1,5 @@
 
-# 🚀 Instalasi SLiMS di WS
+# 🚀 Instalasi SLiMS di WSL
 Panduan ini akan memandu Anda menginstal **SLiMS (Senayan Library Management System)** menggunakan **WSL (Windows Subsystem for Linux)** dengan metode **Git**, membuatnya lebih mudah untuk mendapatkan versi terbaru.
 
 ---
